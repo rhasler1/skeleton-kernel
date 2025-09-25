@@ -1,5 +1,10 @@
 
+
+static void uart_putc(char c);
+void uart_puts(const char *s);
+
 void kernel_main(void) {
+    uart_puts("Hello World, from kernel!");
     while (1) {}
 }
 

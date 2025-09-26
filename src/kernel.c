@@ -9,23 +9,23 @@
 // 24MHz
 #define UART_CLOCK 24000000
 // For QEMU's -machine virt, the UART is an ARM PL011 at address 0x09000000
-#define UART0_BASE      ( ( volatile unsigned int * ) 0x09000000 )
+#define UART0_BASE      ( 0x09000000U )
 
-#define UART0_DR        ( UART0_BASE + 0x00 )
-#define UART0_FR        ( UART0_BASE + 0x18 )
-#define UART0_IBRD      ( UART0_BASE + 0x24 )
-#define UART0_FBRD      ( UART0_BASE + 0x28 )
-#define UART0_LCRH      ( UART0_BASE + 0x2C )
-#define UART0_CR        ( UART0_BASE + 0x30 )
-#define UART0_IMSC      ( UART0_BASE + 0x38 )
-#define UART0_ICR       ( UART0_BASE + 0x44 )
+#define UART0_DR        ( *(volatile uint32_t *)UART0_BASE + 0x00 )
+#define UART0_FR        ( *(volatile uint32_t *)UART0_BASE + 0x18 )
+#define UART0_IBRD      ( *(volatile uint32_t *)UART0_BASE + 0x24 )
+#define UART0_FBRD      ( *(volatile uint32_t *)UART0_BASE + 0x28 )
+#define UART0_LCRH      ( *(volatile uint32_t *)UART0_BASE + 0x2C )
+#define UART0_CR        ( *(volatile uint32_t *)UART0_BASE + 0x30 )
+#define UART0_IMSC      ( *(volatile uint32_t *)UART0_BASE + 0x38 )
+#define UART0_ICR       ( *(volatile uint32_t *)UART0_BASE + 0x44 )
 
-static inline void mmio_write(uint32_t reg, uint32_t data)
+static inline void mmio_write(uintptr_t reg, uint32_t data)
 {
     *(volatile uint32_t*)reg = data;
 }
 
-static inline void mmio_read(uint32_t reg)
+static inline uint32_t mmio_read(uintptr_t reg)
 {
     return *(volatile uint32_t*)reg;
 }

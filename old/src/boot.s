@@ -3,8 +3,16 @@
 // 0. set up 64kb stack
 // 1. branch to kernel main
 _start:
+    // Setting up stack
     ldr x0, =stack_top
     mov sp, x0
+
+    // Loading vector base address for interrupt table
+    ldr x0 =_vectors
+    msr VBAR_EL1, x0
+    isb
+    // Enable interrupts in PSTATE
+    msr daifclr, #0xf
 
     // Call C function
     bl kernel_main

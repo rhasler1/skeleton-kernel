@@ -1,1 +1,23 @@
 /* Link boot.S and kernel.c */
+ENTRY(_start)
+
+SECTIONS {
+  . = 0x40000000;        /* QEMU virt machine RAM base */
+  
+  .text : {
+    *(.text*)
+  }
+
+  .rodata : {
+    *(.rodata*)
+  }
+
+  .data : {
+    *(.data*)
+  }
+
+  .bss : {
+    *(.bss*)
+    *(COMMON)
+  }
+}

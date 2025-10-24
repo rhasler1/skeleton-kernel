@@ -1,10 +1,25 @@
+#include "bsp_virt.h"
+#include "uart.h"
+
 #include <stdint.h>
 #include <stddef.h>
 
+//extern uint64_t EL;
+
+void kernel_main(void) {
+    struct bsp_uart_cfg cfg = get_bsp_uart_cfg();
+    uart_init(&cfg);
+    uart_puts("Hello World!\n", cfg.base);
+
+    while (1) {}
+}
+
+/*
 void uart_puts(const char *s);
 
 void kernel_main(void) {
-    uart_puts("Hello World from Kernel");
+    uart_puts("Hello World from Kernel\n");
+    uart_puts(EL);
     while (1) {}
 }
 
@@ -28,4 +43,4 @@ void uart_puts(const char *s) {
         }
         uart_putc(*s++);            // send the character
     }
-}
+}*/

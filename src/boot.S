@@ -2,8 +2,18 @@
 
 .global _start
 _start:
+    //setup stack
     ldr x5, =stack_top
     mov sp, x5
+
+    //save DTB
+    ldr x1, =phandle
+    str x0, [x1]
+
+    ldr x2, =test
+    add x2, x2, #1
+
+
 
     //Working on getting current Exception Level
     //mrs x0, CurrentEL
@@ -17,21 +27,26 @@ _start:
 1:  wfe
     b 1b
 
-// Uninitialized globals & statics
-// Stack is defined here
-.section .bss
-    // 2^12 = 4096 byte boundary
-    // This means assembler/linker ensures the label
-    // starts at an address divisible by 4096.
-    .align 12
+// .bss.stack: Stack Initialized to 0 on 4096 byte boundary
+.section .bss.stack
+    .balign 4096
 stack_bottom:
-    .skip 4096 * 16     //64KB Stack
-stack_top:
+    .skip 4096 * 16                 //64KB Stack
+stack_top:                          //Set in linker.ld
 
+//.data: Initialized Variables::Begin
 .section .data
-    .align  4
-    .global EL
-    .type   EL, %object
-    .size   EL, 8
-EL: .quad   0x123456789ABCDEF0
+    // Device Tree
+    .balign     8                   // align on 8 byte boundary
+    .global     phandle             // phandle = Device Tree Pointer
+    .type       phandle, %object
+    .size       phandle, 8          // reserve 8 bytes
+phandle: .quad  0                   // init to 0   
+    // Test
+    .balign     8
+    .global     test
+    .type       test, %object
+    .size       test, 8
+test: .quad       0x0F                 // Why "quad" to signify 8 (4"quad"*2"word"?)
+//Initialized Variables::End
 

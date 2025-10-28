@@ -1,46 +1,22 @@
 #include "bsp_virt.h"
-#include "uart.h"
-
+#include "pl011.h"
 #include <stdint.h>
 #include <stddef.h>
 
-//extern uint64_t EL;
+extern uint64_t phandle;
+extern uint64_t test;
 
 void kernel_main(void) {
-    struct bsp_uart_cfg cfg = get_bsp_uart_cfg();
-    uart_init(&cfg);
-    uart_puts("Hello World!\n", cfg.base);
+    // BSP Uart Config (SoC)
+    struct bsp_uart_cfg cfg =   get_bsp_uart_cfg();
+    // pl011 Config/Context
+    struct pl011_ctx ctx =      get_pl011_ctx(cfg.base, cfg.clock_hz);     
+    pl011_init(&ctx);
+    pl011_puts("Hello World!\n", &ctx);
+
+    uint64_t fdt = phandle;
+    uint64_t t = test;
+    pl011_put_hex(t, &ctx);
 
     while (1) {}
 }
-
-/*
-void uart_puts(const char *s);
-
-void kernel_main(void) {
-    uart_puts("Hello World from Kernel\n");
-    uart_puts(EL);
-    while (1) {}
-}
-
-// For QEMU's -machine virt, the UART is an ARM PL011 at address 0x09000000
-// volatile: prevent compiler optimization & caching 
-#define UART0 ((volatile unsigned int *)0x09000000)
-static void uart_putc(char c) {
-    // Check if UART is ready to transmit by checking
-    // Flag Register at UART0 + 0x18
-    while (*(UART0 + 0x18/4) & (1<<5));
-
-    // Writes this byte into the UART's Data Register at offset 0x00
-    // This enqueues the byte into the UART's transmit FIFO.
-    *UART0 = c;
-}
-
-void uart_puts(const char *s) {
-    while (*s) {
-        if (*s == '\n') {
-            uart_putc('\r');        // add carriage return for terminal compatibility
-        }
-        uart_putc(*s++);            // send the character
-    }
-}*/

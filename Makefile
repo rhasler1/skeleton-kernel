@@ -34,10 +34,10 @@ $(BUILD_DIR)/bsp_virt.o: $(SRC_DIR)/bsp_virt.c $(INCLUDE_DIR)/bsp_virt.h
 $(BUILD_DIR)/mmio.o: $(SRC_DIR)/mmio.c $(INCLUDE_DIR)/mmio.h 
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(BUILD_DIR)/pl011.o: $(SRC_DIR)/pl011.c $(INCLUDE_DIR)/uart.h $(INCLUDE_DIR)/bsp_virt.h
+$(BUILD_DIR)/pl011.o: $(SRC_DIR)/pl011.c $(INCLUDE_DIR)/pl011.h $(INCLUDE_DIR)/bsp_virt.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(BUILD_DIR)/kernel.o: $(SRC_DIR)/kernel.c $(INCLUDE_DIR)/bsp_virt.h $(INCLUDE_DIR)/uart.h 
+$(BUILD_DIR)/kernel.o: $(SRC_DIR)/kernel.c $(INCLUDE_DIR)/pl011.h $(INCLUDE_DIR)/bsp_virt.h
 	$(CC) $(CFLAGS) -c -o $@ $< 
 
 $(BIN_DIR)/kernel.elf: $(BUILD_DIR)/boot.o $(BUILD_DIR)/bsp_virt.o $(BUILD_DIR)/mmio.o $(BUILD_DIR)/pl011.o $(BUILD_DIR)/kernel.o $(SRC_DIR)/linker.ld

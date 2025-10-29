@@ -52,4 +52,4 @@ clean:
 	rm -f $(OBJS) kernel.elf
 
 run: $(BIN_DIR)/kernel.elf
-	$(BUILD_SYSTEM)/$(BUILD_TARGET) -machine virt -nographic -cpu cortex-a53 -m 256M -kernel $(BIN_DIR)/kernel.elf
+	$(BUILD_SYSTEM)/$(BUILD_TARGET) -machine virt, dumpdtb=qemu.dtb -nographic -cpu cortex-a53 -m 256M -kernel $(BIN_DIR)/kernel.elf

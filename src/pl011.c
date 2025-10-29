@@ -65,6 +65,13 @@ void pl011_putb(uint8_t byte, struct pl011_ctx *ctx)
     while (mmio_read32(ctx->base, ctx->fr_offset) & (1<<5));
     mmio_write32(ctx->base, ctx->dr_offset, byte);
 }
+/*
+TODO
+void pl011_put_deci(const uint64_t data, struct pl011_ctx *ctx)
+{
+    pl011_putc()
+}
+*/
 
 //map nibble to hex char
 static inline char hex_digit(uint8_t nib) {

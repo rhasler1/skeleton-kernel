@@ -7,19 +7,15 @@ _start:
     mov sp, x5
 
     //save DTB
+    ldr x2, =0x40000000         // For baremetal QEMU virt, addr of DTB is not passed through register
     ldr x1, =phandle
-    str x0, [x1]
-
-    ldr x2, =test
-    add x2, x2, #1
-
-
+    str x2, [x1]
 
     //Working on getting current Exception Level
-    //mrs x0, CurrentEL
-    //lsr x0, x0, #2
-    //ldr x1, =current_el
-    //str x0, [x1]
+    mrs x0, CurrentEL
+    lsr x0, x0, #2
+    ldr x3, =ex_level
+    str x0, [x3]
     
     // Call C function
     bl kernel_main
@@ -48,5 +44,11 @@ phandle: .quad  0                   // init to 0
     .type       test, %object
     .size       test, 8
 test: .quad       0x0F                 // Why "quad" to signify 8 (4"quad"*2"word"?)
+    .balign     8
+    .global     ex_level
+    .type       ex_level, %object
+    .size       ex_level, 8
+ex_level: .quad 0
+
 //Initialized Variables::End
 

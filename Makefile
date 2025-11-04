@@ -1,55 +1,84 @@
 #---------------#
 #---Toolchain---#
 #---------------#
-
-INCLUDE_DIR := include
-
 CC 		:= $(TARGET)-gcc
 AS 		:= $(CC)
 LD		:= $(TARGET)-ld
-CFLAGS 	:= -I$(INCLUDE_DIR) -mcpu=cortex-a53 -fpic -ffreestanding
 
 #---------------#
 #---PATHS-------#
 #---------------#
 SRC_DIR 	:= src
-#INCLUDE_DIR := include
+INC_DIR 	:= include
+LIBFDT_SRC	:= libfdt/src
+LIBFDT_INC	:= libfdt/include
 BUILD_DIR 	:= build
 BIN_DIR		:= bin
 
 #---------------#
-#---FILES-------#
+#---CFLAGS------#
 #---------------#
-#OBJS = boot.o kernel.o
+CFLAGS 	:= -I$(INC_DIR) -I$(LIBFDT_INC) -mcpu=cortex-a53 -fpic -ffreestanding
 
 #---------------#
-#---RULES-------#
+#---SOURCES-----#
 #---------------#
-$(BUILD_DIR)/boot.o: $(SRC_DIR)/boot.S
-	$(CC) $(CFLAGS) -c -o $@ $<
+# Your sources
+SRC_C       := bsp_virt.c mmio.c pl011.c kernel.c dtb.c
+SRC_S       := boot.S
 
-$(BUILD_DIR)/bsp_virt.o: $(SRC_DIR)/bsp_virt.c $(INCLUDE_DIR)/bsp_virt.h 
-	$(CC) $(CFLAGS) -c -o $@ $<
+LIBFDT_CS   := fdt.c fdt_ro.c fdt_strerror.c fdt_addresses.c fdt_check.c fdt_rw.c fdt_wip.c fdt_stubs.c
 
-$(BUILD_DIR)/mmio.o: $(SRC_DIR)/mmio.c $(INCLUDE_DIR)/mmio.h 
-	$(CC) $(CFLAGS) -c -o $@ $<
+#---------------#
+#---OBJECTS-----#
+#---------------#
+COBJS       := $(patsubst %.c,$(BUILD_DIR)/%.o,$(SRC_C))
+SOBJS       := $(patsubst %.S,$(BUILD_DIR)/%.o,$(SRC_S))
+LIBFDT_OBJS := $(patsubst %.c,$(BUILD_DIR)/libfdt_%.o,$(LIBFDT_CS))
+OBJS        := $(SOBJS) $(COBJS) $(LIBFDT_OBJS)
 
-$(BUILD_DIR)/pl011.o: $(SRC_DIR)/pl011.c $(INCLUDE_DIR)/pl011.h $(INCLUDE_DIR)/bsp_virt.h
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-$(BUILD_DIR)/kernel.o: $(SRC_DIR)/kernel.c $(INCLUDE_DIR)/pl011.h $(INCLUDE_DIR)/bsp_virt.h
-	$(CC) $(CFLAGS) -c -o $@ $< 
-
-$(BIN_DIR)/kernel.elf: $(BUILD_DIR)/boot.o $(BUILD_DIR)/bsp_virt.o $(BUILD_DIR)/mmio.o $(BUILD_DIR)/pl011.o $(BUILD_DIR)/kernel.o $(SRC_DIR)/linker.ld
-	$(LD) -T $(SRC_DIR)/linker.ld -o $@ $(BUILD_DIR)/boot.o $(BUILD_DIR)/bsp_virt.o $(BUILD_DIR)/mmio.o $(BUILD_DIR)/pl011.o $(BUILD_DIR)/kernel.o
+DEPS        := $(OBJS:.o=.d)
 
 #---------------#
 #---TARGETS-----#
 #---------------#
-all: $(BIN_DIR)/kernel.elf
+.PHONY: all clean dirs
+all: dirs $(BIN_DIR)/kernel.elf
 
-clean:
-	rm -f $(OBJS) kernel.elf
+dirs:
+	@mkdir -p $(BUILD_DIR) $(BIN_DIR)
+
+#---------------#
+#---RULES-------#
+#---------------#
+
+# Assemble .S (preprocessed assembly)
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.S | $(BUILD_DIR)
+	$(AS) $(CFLAGS) -c -o $@ $<
+
+# Compile C from src/
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+# Compile C from libfdt/src/, keep object names distinct with 'libfdt_' prefix
+$(BUILD_DIR)/libfdt_%.o: $(LIBFDT_SRC)/%.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+# Link the kernel
+$(BIN_DIR)/kernel.elf: $(OBJS) $(SRC_DIR)/linker.ld | $(BIN_DIR)
+	$(LD) -T $(SRC_DIR)/linker.ld -o $@ $(OBJS)
+
+# Include auto-generated header deps (safe if missing the first time)
+-include $(DEPS)
+
+#---------------#
+#---UTIL--------#
+#---------------#
+dump_dtb:
+	$(BUILD_SYSTEM)/$(BUILD_TARGET) -machine virt,dumpdtb=virt.dtb -m 256M -nographic
 
 run: $(BIN_DIR)/kernel.elf
-	$(BUILD_SYSTEM)/$(BUILD_TARGET) -machine virt, dumpdtb=qemu.dtb -nographic -cpu cortex-a53 -m 256M -kernel $(BIN_DIR)/kernel.elf
+	$(BUILD_SYSTEM)/$(BUILD_TARGET) -machine virt -device loader,file=$(SKELETON_HOME)/virt.dtb,addr=0x40100000 -nographic -cpu cortex-a53 -m 256M -kernel $(BIN_DIR)/kernel.elf
+
+clean:
+	@rm -rf $(BUILD_DIR) $(BIN_DIR)

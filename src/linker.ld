@@ -2,7 +2,7 @@
 ENTRY(_start)
 
 SECTIONS {
-  . = 0x40080000;        /* QEMU virt machine RAM base */
+  . = 0x40080000;
   
   .text : {
     *(.text*)

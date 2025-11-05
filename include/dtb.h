@@ -3,5 +3,5 @@
 
 //extern uint64_t phandle;
 
-void test_fdt_phandle(uint64_t phandle, struct pl011_ctx *ctx);
+void test_dtb_addr(uint64_t dtb_addr, struct pl011_ctx *ctx);
 

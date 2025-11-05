@@ -7,8 +7,9 @@ _start:
     mov sp, x5
 
     //save DTB
-    ldr x2, =0x40000000         // For baremetal QEMU virt, addr of DTB is not passed through register
-    ldr x1, =phandle
+    // DTB is passed in at 0x40100000, see make run
+    ldr x2, =0x40100000         // For baremetal QEMU virt, addr of DTB is not passed through register
+    ldr x1, =dtb_addr
     str x2, [x1]
 
     //Working on getting current Exception Level
@@ -34,10 +35,10 @@ stack_top:                          //Set in linker.ld
 .section .data
     // Device Tree
     .balign     8                   // align on 8 byte boundary
-    .global     phandle             // phandle = Device Tree Pointer
-    .type       phandle, %object
-    .size       phandle, 8          // reserve 8 bytes
-phandle: .quad  0                   // init to 0   
+    .global     dtb_addr            // phandle = Device Tree Pointer
+    .type       dtb_addr, %object
+    .size       dtb_addr, 8         // reserve 8 bytes
+dtb_addr: .quad  0                   // init to 0   
     // Test
     .balign     8
     .global     test

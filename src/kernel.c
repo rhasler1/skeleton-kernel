@@ -1,4 +1,5 @@
 //#include "bsp_virt.h"
+#include "device_config.h"
 #include "pl011.h"
 #include "dtb.h"
 #include <stdint.h>
@@ -27,21 +28,30 @@ void check_dtb(struct pl011_ctx *ctx)
     pl011_puts("\n---Checking Devicetree blob---\ndtb_addr= ", ctx);
     uint64_t da = dtb_addr;
     pl011_put_hex(da, ctx);
-    test_dtb_addr(da, ctx);
+
+    int res;
+    res = check_dtb_addr(da, ctx);
+
+    if (res != 0) {
+        pl011_puts("\n Cannot find Device Tree Blob; FDT error code= ", ctx);
+        pl011_put_hex((uint64_t)res, ctx);
+    }
+    pl011_puts("\nFound Device Tree Blob", ctx);
 }
 
 void kernel_main(void) {
-    // hardcode, DTB is not parsed at this point
-    uintptr_t uart_base = 0x9000000;
-    uint32_t clock_hz = 24000000;
-    // get pl011 struct
+    uintptr_t uart_base = UART_BASE;
+    uint32_t clock_hz = CLOCK_HZ;
+    
     struct pl011_ctx ctx = get_pl011_ctx(uart_base, clock_hz);
-    // init pl011
     init_uart(&ctx);
-    // check kernel exception level
+    
     check_el(&ctx);
-    // check dtb_addr
+    
     check_dtb(&ctx);
+    
+    struct physical_memory ram = get_physical_memory_node(dtb_addr, &ctx);
+    pl011_put_hex(ram.base_addr, &ctx);
 
     while (1) {}
 }

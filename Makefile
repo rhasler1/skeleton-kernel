@@ -78,7 +78,7 @@ dump_dtb:
 	$(BUILD_SYSTEM)/$(BUILD_TARGET) -machine virt,dumpdtb=virt.dtb -m 256M -nographic
 
 run: $(BIN_DIR)/kernel.elf
-	$(BUILD_SYSTEM)/$(BUILD_TARGET) -machine virt -device loader,file=$(SKELETON_HOME)/virt.dtb,addr=0x40100000 -nographic -cpu cortex-a53 -m 256M -kernel $(BIN_DIR)/kernel.elf
+	$(BUILD_SYSTEM)/$(BUILD_TARGET) -machine virt -nographic -cpu cortex-a53 -m 256M -kernel $(BIN_DIR)/kernel.elf
 
 clean:
 	@rm -rf $(BUILD_DIR) $(BIN_DIR)

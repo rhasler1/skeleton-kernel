@@ -6,7 +6,6 @@
 #include <stddef.h>
 
 extern uint64_t dtb_addr;
-//extern uint64_t test;
 extern uint64_t ex_level;
 
 void init_uart(struct pl011_ctx *ctx)
@@ -30,7 +29,7 @@ void check_dtb(struct pl011_ctx *ctx)
     pl011_put_hex(da, ctx);
 
     int res;
-    res = check_dtb_addr(da, ctx);
+    res = dtb_check_header(da);
 
     if (res != 0) {
         pl011_puts("\n Cannot find Device Tree Blob; FDT error code= ", ctx);
@@ -40,18 +39,18 @@ void check_dtb(struct pl011_ctx *ctx)
 }
 
 void kernel_main(void) {
-    uintptr_t uart_base = UART_BASE;
-    uint32_t clock_hz = CLOCK_HZ;
+    uintptr_t uart_base =   UART_BASE;
+    uint32_t clock_hz =     CLOCK_HZ;
     
-    struct pl011_ctx ctx = get_pl011_ctx(uart_base, clock_hz);
-    init_uart(&ctx);
+    struct pl011_ctx pl011 =  get_pl011_ctx(uart_base, clock_hz);
+    init_uart(&pl011);
     
-    check_el(&ctx);
+    check_el(&pl011);
     
-    check_dtb(&ctx);
+    check_dtb(&pl011);
     
-    struct physical_memory ram = get_physical_memory_node(dtb_addr, &ctx);
-    pl011_put_hex(ram.base_addr, &ctx);
+    struct ram_ctx ram = get_ram_ctx(dtb_addr);
+    pl011_put_hex(ram.base_addr, &pl011);
 
     while (1) {}
 }

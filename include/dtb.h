@@ -1,10 +1,6 @@
 #pragma once
-#include "pl011.h"
 
-struct physical_memory {
-    uint64_t base_addr;
-    uint64_t size;
-};
+#include "mem.h"
 
-int check_dtb_addr(uint64_t dtb_addr, struct pl011_ctx *ctx);
-struct physical_memory get_physical_memory_node(uint64_t dtb_addr, struct pl011_ctx *ctx);
+int             dtb_check_header    (uint64_t dtb_addr);
+struct ram_ctx  get_ram_ctx         (uint64_t dtb_addr);

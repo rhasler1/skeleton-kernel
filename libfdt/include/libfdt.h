@@ -6,7 +6,7 @@
  * Copyright (C) 2006 David Gibson, IBM Corporation.
  */
 
-#include "fdt_stubs.h"
+#include "string.h"
 #include <libfdt_env.h>
 #include <fdt.h>
 

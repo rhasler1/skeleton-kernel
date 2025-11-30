@@ -1,13 +1,14 @@
 #pragma once
+
 #include <stdint.h>
 
-uint32_t mmio_read32(
-        uintptr_t base,
-        uint32_t offset
+#define MMIO_BASE ((uintptr_t)0xFE000000)
+
+uint32_t mmio_read(
+        uint32_t reg
         );
 
-void mmio_write32(
-        uintptr_t base,
-        uint32_t offset,
+void mmio_write(
+        uint32_t reg,
         uint32_t data
         );

@@ -1,10 +1,9 @@
-#include "device_config.h"
 
 /* Link boot.S and kernel.c */
 ENTRY(_start)
 
 SECTIONS {
-  . = 0x40100000;
+  . = 0x80000;
   
   .text : {
     *(.text*)

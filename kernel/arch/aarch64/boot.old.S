@@ -1,18 +1,17 @@
-.section ".text.boot"
-
+.section .text
 .global _start
-
 _start:
-    // read cpu id, stop all cores with id > 0
-    mrs     x1, MPIDR_EL1
-    and     x1, x1, #3
-    // if cpu id == 0, jump to "1" and continue boot
-    cbz     x1, 1f
 
-// All non-zero cores run in infinite loop
+    // Figure out which core we are on using MPIDR_EL1
+    mrs     x0, MPIDR_EL1
+    and     x0, x0, #0xFF     // Affinity level 0 (core ID)
+
+    cbz     x0, 1f            // if core == 0, jump to label 1 and continue boot
+
+// Secondary cores park here:
 0:
-    wfe
-    b       0b
+    wfe                        // wait for event (low-power idle loop)
+    b       0b                 // stay here forever (or until you later wake them)
 
 1:
     //setup stack

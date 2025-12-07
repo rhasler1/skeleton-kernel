@@ -10,6 +10,9 @@ ARCH_DIR		:= kernel/arch/aarch64
 KERNELSRC_DIR 	:= kernel/src
 KERNELINC_DIR 	:= kernel/include
 
+APPSRC_DIR		:= app/src
+APPINC_DIR		:= app/include
+
 LIBCSTR_DIR		:= libc/string
 LIBCINC_DIR		:= libc/include
 
@@ -22,6 +25,7 @@ BIN_DIR			:= bin
 
 #compiler flags
 CFLAGS 	:= -I$(KERNELINC_DIR) \
+		   -I$(APPINC_DIR) \
 		   -I$(LIBCINC_DIR) \
 		   -I$(LIBFDTINC_DIR) \
 		   -fpic \
@@ -33,9 +37,16 @@ CFLAGS 	:= -I$(KERNELINC_DIR) \
 #source files
 SRC_C       := mmio.c \
 			   uart0.c \
-			   kernel.c
+			   kernel.c \
+			   mbox.c \
+			   delay.c \
+			   kfb.c
+#lfb.c
 
 SRC_S       := boot.S
+
+APP_C		:= fb.c \
+			   fb_server.c
 
 SRC_LIBC	:= memchr.c \
 			   memcpy.c \
@@ -60,10 +71,12 @@ LIBFDT_C   	:= fdt.c \
 
 #object files to generate
 COBJS       := $(patsubst %.c,$(BUILD_DIR)/%.o,$(SRC_C))
+APP_COBJS	:= $(patsubst %.c,$(BUILD_DIR)/%.o,$(APP_C))
+
 LIBC_OBJS   := $(patsubst %.c,$(BUILD_DIR)/%.o,$(SRC_LIBC))
 SOBJS       := $(patsubst %.S,$(BUILD_DIR)/%.o,$(SRC_S))
 LIBFDT_OBJS := $(patsubst %.c,$(BUILD_DIR)/libfdt_%.o,$(LIBFDT_C))
-OBJS        := $(SOBJS) $(COBJS) $(LIBC_OBJS) $(LIBFDT_OBJS)
+OBJS        := $(SOBJS) $(COBJS) $(APP_COBJS) $(LIBC_OBJS) $(LIBFDT_OBJS)
 DEPS        := $(OBJS:.o=.d)
 
 
@@ -74,6 +87,10 @@ $(BUILD_DIR)/%.o: $(ARCH_DIR)/%.S | $(BUILD_DIR)
 
 #compile c from kernel/src
 $(BUILD_DIR)/%.o: $(KERNELSRC_DIR)/%.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+#compile c from app/src
+$(BUILD_DIR)/%.o: $(APPSRC_DIR)/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 #compile c from libc/string
@@ -110,10 +127,19 @@ machine_help:
 	$(BUILD_SYSTEM)/$(BUILD_TARGET) \
 		-machine help
 
-run: $(BIN_DIR)/kernel8.elf
+run_graphic: $(BIN_DIR)/kernel8.img
+	$(BUILD_SYSTEM)/$(BUILD_TARGET) \
+	-machine raspi4b \
+	-dtb bcm2711-rpi-4-b.dtb \
+	-display vnc=:1 \
+	-monitor stdio \
+	-kernel $(BIN_DIR)/kernel8.img
+
+run: $(BIN_DIR)/kernel8.img
 	$(BUILD_SYSTEM)/$(BUILD_TARGET) \
 	-machine raspi4b \
 	-nographic \
+	-dtb bcm2711-rpi-4-b.dtb \
 	-kernel $(BIN_DIR)/kernel8.img
 
 kernel8.img:

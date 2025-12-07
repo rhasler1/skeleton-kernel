@@ -45,7 +45,7 @@ SRC_C       := mmio.c \
 
 SRC_S       := boot.S
 
-APP_C		:= fb.c \
+APP_C		:= fb_client.c \
 			   fb_server.c
 
 SRC_LIBC	:= memchr.c \

@@ -2,5 +2,5 @@
 
 #include "fb_surface.h"
 
-int init_fb_server();                           // attempts to claim fb from kernel
-void get_fb_surface(struct fb_surface *out);    // passes memory regions to clients
+int     fb_server_init              ();                         // attempts to claim fb from kernel
+int     fb_server_create_surface    (struct fb_surface *out);   // passes memory regions to clients

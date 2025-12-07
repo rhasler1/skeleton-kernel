@@ -19,32 +19,36 @@
 //                  S2 = R1b + R2b + R3b ...
 // Output:      Screen Region Descriptor
 
-
-#include "kfb.h"            // see kernel/include/kfb.h
-#include "uart0.h"
-#include "fb_server.h"
-#include "fb_surface.h"
+#include "kfb.h"            // kernel/include/kfb.h
+#include "uart0.h"          // kernel/include/uart0.h
+#include "fb_server.h"      // app/include/fb_server.h
+#include "fb_surface.h"     // app/include/fb_surface.h
 #include <stddef.h>
 
-struct kernel_fb *fb;      // ptr to the frame buffer as the kernel sees it
+struct kernel_fb *fb;       // ptr to the frame buffer as the kernel sees it
 
-void get_fb_surface(struct fb_surface *out)
+int fb_server_create_surface(struct fb_surface *out)
 {
     if (fb == NULL) {
         uart0_puts("Server: Could not provide surface to client.\n");
+        return -1;
     };
 
     out->base = fb->fb_ptr;
     out->width = fb->width;
     out->height = fb->height;
+    out->pitch = fb->pitch;
+    out->isrgb = fb->isrgb;
+    uart0_puts("Server: Successfully created fb_surface.\n");
+    return 1;
 }
 
-int init_fb_server()
+int fb_server_init()
 {
     int server_pid;
     server_pid = 90001;         // just some random number
     
-    fb = kernel_fb_claim(server_pid);
+    fb = fb_kernel_claim(server_pid);
 
     if (fb == NULL) {
         uart0_puts("Server: Failed to claim frame buffer.\n");
@@ -53,6 +57,6 @@ int init_fb_server()
         return -1;
     }
     
-    uart0_puts("Server: Successfully claimed frame buffer.\n");
+    uart0_puts("Server: Successfully claimed frame buffer from Kernel.\n");
     return 0;
 }

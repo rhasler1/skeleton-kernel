@@ -8,20 +8,20 @@
 // defined in kfb.h
 struct kernel_fb kfb;
 
-struct kernel_fb* kernel_fb_claim(int requester_pid)
+struct kernel_fb* fb_kernel_claim(int requester_pid)
 {
     if (!kfb.available) {
-        uart0_puts("Frame buffer is not currently available.\n");
+        uart0_puts("Kernel FB: Frame buffer is not currently available.\n");
         return NULL;
     }
 
     kfb.available=0;
     kfb.owner_pid=requester_pid;
-    uart0_puts("Kernel frame buffer claimed.\n");
+    uart0_puts("Kernel FB: Frame buffer claimed.\n");
     return &kfb;
 }
 
-int kernel_fb_init()
+int fb_kernel_init()
 {
     wait_msec(100000);
 
@@ -90,14 +90,14 @@ int kernel_fb_init()
         kfb.fb_ptr=(void*)((unsigned long)mbox[28]);
         kfb.available=1;
 
-        uart0_puts("Kernel: Frame buffer initialized.\n");
-        uart0_puts("Kernel: Screen resolution set to 1024x768x32.\n");
+        uart0_puts("Kernel FB: Frame buffer initialized.\n");
+        uart0_puts("Kernel FB: Screen resolution set to default of 1024x768x32.\n");
 
         return 0;
     }
     else {
-        uart0_puts("Kernel: Frame buffer could not be initialized.\n");
-        uart0_puts("Kernel: Unable to set screen resolution to 1024x768x32.\n");
+        uart0_puts("Kernel FB: Frame buffer could not be initialized.\n");
+        uart0_puts("Kernel FB: Unable to set screen resolution to 1024x768x32.\n");
         
         return -1;
     }

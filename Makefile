@@ -31,7 +31,8 @@ CFLAGS 	:= -I$(KERNELINC_DIR) \
 		   -fpic \
 		   -ffreestanding \
 		   -Wall \
-		   -O2
+		   -O2 \
+		   -Wno-trigraphs
 
 
 #source files

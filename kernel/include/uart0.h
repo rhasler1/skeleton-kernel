@@ -30,3 +30,4 @@ void            uart0_putc          (unsigned char c);
 unsigned char   uart0_getc          ();
 void            uart0_puts          (const char* buf);
 void            uart0_put_hex       (const uint64_t data);
+void            uart0_put_deci      (unsigned int n);

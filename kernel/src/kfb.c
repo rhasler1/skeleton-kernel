@@ -5,6 +5,8 @@
 #include "delay.h"
 #include <stddef.h>
 
+static int fb_kernel_set(unsigned int width, unsigned int height, unsigned int depth);
+
 // defined in kfb.h
 struct kernel_fb kfb;
 
@@ -23,6 +25,32 @@ struct kernel_fb* fb_kernel_claim(int requester_pid)
 
 int fb_kernel_init()
 {
+    //set defaults
+    unsigned int width, height, depth;
+    width = 1200;
+    height = 920;
+    depth = 32;
+    kfb.available = 1;
+
+    int res;
+    uart0_puts("Kernel FB: Setting default configuration\n");
+    res = fb_kernel_set(width, height, depth);
+    return res;
+}
+
+int fb_kernel_reconfig(int requester_pid, unsigned int width, unsigned int height, unsigned int depth)
+{
+    if (kfb.owner_pid != requester_pid) {
+        uart0_puts("Kernel FB: Frame buffer could not be reconfigured. Requester PID does not match owner.\n");
+        return -1;
+    }
+    uart0_puts("Kernel FB: Attempting to reconfigure Frame buffer.\n");
+    int res = fb_kernel_set(width, height, depth);
+    return res;
+}
+
+static int fb_kernel_set(unsigned int width, unsigned int height, unsigned int depth)
+{
     wait_msec(100000);
 
     mbox[0] = 35*4;
@@ -32,17 +60,17 @@ int fb_kernel_init()
     mbox[3] = 8;
     mbox[4] = 8;
     //width
-    mbox[5] = 1024;
+    mbox[5] = width;
     //height
-    mbox[6] = 768;
+    mbox[6] = height;
 
     mbox[7] = 0x48004;
     mbox[8] = 8;
     mbox[9] = 8;
     //virtual width
-    mbox[10] = 1024;
+    mbox[10] = width;
     //virtual height
-    mbox[11] = 768;
+    mbox[11] = height;
 
     mbox[12] = 0x48009;
     mbox[13] = 8;
@@ -56,7 +84,7 @@ int fb_kernel_init()
     mbox[18] = 4;
     mbox[19] = 4;
     //depth
-    mbox[20] = 32;
+    mbox[20] = depth;
 
     //setting pixel order
     mbox[21] = 0x48006;
@@ -88,16 +116,24 @@ int fb_kernel_init()
         kfb.pitch=mbox[33];         //get number of bytes per line
         kfb.isrgb=mbox[24];         //get the actual channel order
         kfb.fb_ptr=(void*)((unsigned long)mbox[28]);
-        kfb.available=1;
 
         uart0_puts("Kernel FB: Frame buffer initialized.\n");
-        uart0_puts("Kernel FB: Screen resolution set to default of 1024x768x32.\n");
+        uart0_puts("Kernel FB: Frame buffer address:\n");
+        uart0_put_hex((const uint64_t)kfb.fb_ptr);
+        uart0_puts("\n");
+        uart0_puts("Kernel FB Resolution: \n");
+        uart0_put_deci(width);
+        uart0_puts("x");
+        uart0_put_deci(height);
+        uart0_puts("x");
+        uart0_put_deci(depth);
+        uart0_puts("\n");
 
         return 0;
     }
     else {
         uart0_puts("Kernel FB: Frame buffer could not be initialized.\n");
-        uart0_puts("Kernel FB: Unable to set screen resolution to 1024x768x32.\n");
+        //uart0_puts("Kernel FB: Unable to set screen resolution to 1024x768x32.\n");
         
         return -1;
     }

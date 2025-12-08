@@ -25,6 +25,9 @@
 #include "fb_surface.h"     // app/include/fb_surface.h
 #include <stddef.h>
 
+void fb_clear();
+
+static int server_pid = 90001;
 struct kernel_fb *fb;       // ptr to the frame buffer as the kernel sees it
 
 int fb_server_create_surface(struct fb_surface *out)
@@ -43,10 +46,48 @@ int fb_server_create_surface(struct fb_surface *out)
     return 1;
 }
 
+int fb_server_reconfig(struct fb_surface *surface, unsigned int width, unsigned int height, unsigned int depth)
+{
+    uart0_puts("Server: Receieved reconfigure request from client, forwarding to kernel.\n");
+    if (surface == NULL) {
+        uart0_puts("Server: Bad surface provided.\n");
+    }
+
+    //adding clear function here for demo, remove later
+    uart0_puts("Server: Clearing frame buffer before reconfiguring.\n");
+    fb_clear();
+    uart0_puts("Delay for 1s to prevent flickering.\n");
+    wait_msec(1000000);
+    
+    int res;
+    res = fb_kernel_reconfig(server_pid, width, height, depth);
+    if (res == -1) {
+        uart0_puts("Server: Bad configuration provided.\n");
+        return -1;
+    }
+
+    surface->base = fb->fb_ptr;
+    surface->width = fb->width;
+    surface->height = fb->height;
+    surface->pitch = fb->pitch;
+    surface->isrgb = fb->isrgb;
+
+    return 1;
+}
+
+void fb_clear() {
+    uint32_t *p = (uint32_t*)fb->fb_ptr;
+    size_t pixels = fb->width * fb->height;
+
+    for (size_t i = 0; i < pixels; i++) {
+        p[i] = 0;  // e.g., 0x00000000 for black
+    }
+}
+
 int fb_server_init()
 {
-    int server_pid;
-    server_pid = 90001;         // just some random number
+    //int server_pid;
+    //server_pid = 90001;         // just some random number
     
     fb = fb_kernel_claim(server_pid);
 

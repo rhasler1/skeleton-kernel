@@ -62,8 +62,31 @@ void uart0_puts(const char* buf)
     }
 }
 
+void uart0_put_deci(unsigned int n) {
+    char buf[10];          // max for 32-bit unsigned: "4294967295"
+    int i = 0;
+
+    // Special case for zero
+    if (n == 0) {
+        uart0_putc('0');
+        return;
+    }
+
+    // Convert number to string in reverse order
+    while (n > 0) {
+        buf[i++] = '0' + (n % 10);
+        n /= 10;
+    }
+
+    // Now output digits in correct order
+    while (--i >= 0) {
+        uart0_putc(buf[i]);
+    }
+}
+
 //map nibble to hex char
-static inline char hex_digit(uint8_t nib) {
+static inline char hex_digit(uint8_t nib)
+{
     uint8_t mask = 0x0F;                            //this is redundant, nib is masked in put_hex
     nib &= mask;
     return (nib < 10) ? ('0' + nib) : ('A' + (nib - 10));
